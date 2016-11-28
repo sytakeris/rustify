@@ -4,26 +4,25 @@ extern crate ansi_term;
 use self::reqwest::header::{Authorization, Basic};
 use self::ansi_term::Colour::Red;
 
-use api::request::api_request::AuthorizeRequest;
-use api::response::api_response::AuthorizeResponse;
+use api::requests::authorization::AuthorizeRequest;
+use api::responses::authorization::AuthorizeResponse;
 
 use client::tracks::*;
 
 use http::http::Http;
 
 pub struct SpotifyClient {
-    pub tracks: Tracks,
-    token: String
+    pub tracks: Tracks
 }
 
 impl SpotifyClient {
     fn new(token: String) -> SpotifyClient {
-        SpotifyClient { token: token, tracks: Tracks {} }
+        SpotifyClient { tracks: Tracks::new(token) }
     }
 }
 
 pub fn authorize(request: AuthorizeRequest) -> SpotifyClient {
-    println!("{}: {:#?}",Red.bold().paint("[DEBUG] Sending auth request"), request);
+    debug!("{}: {:#?}",Red.bold().paint("Sending auth requests"), request);
 
     let params = vec![("grant_type", request.grant_type)];
     let header = Authorization(
@@ -35,9 +34,9 @@ pub fn authorize(request: AuthorizeRequest) -> SpotifyClient {
 
     let auth_response: AuthorizeResponse = Http::post("https://accounts.spotify.com/api/token",
                                                      Some(&params),
-                                                     Some(header));
+                                                     Some(header)).unwrap();
 
-    println!("{}: {:#?}",Red.bold().paint("[DEBUG] Got auth response"), auth_response);
+    debug!("{}: {:#?}",Red.bold().paint("Got auth responses"), auth_response);
 
     SpotifyClient::new(auth_response.access_token)
 }
